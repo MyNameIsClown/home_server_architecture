@@ -1,0 +1,15 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+entryPoints:
+  web:
+    address: ":80"
+
+api:
+  dashboard: true
+  insecure: true  # Habilitamos el panel de control sin seguridad (solo temporal)
+
+providers:
+  docker:
+    exposedByDefault: false

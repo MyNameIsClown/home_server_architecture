@@ -1,0 +1,39 @@
+services:
+  docker-socket-proxy:
+    image: tecnativa/docker-socket-proxy
+    container_name: docker-socket-proxy
+    restart: unless-stopped
+    ports:
+      - 2375:2375
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    environment:
+      - CONTAINERS=1
+    networks:
+      - traefik_network
+  traefik:
+    image: "traefik:v3.1"
+    container_name: "traefik"
+    restart: unless-stopped
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.web.address=:80"
+      - "--entryPoints.websecure.address=:443"
+      - "--providers.docker.endpoint=tcp://docker-socket-proxy:2375"
+    ports:
+      - "80:80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-hub.rule=Host(`traefik.astrolinkhub.com`)"
+      - "traefik.http.routers.traefik-hub.entrypoints=web"
+      - "traefik.http.services.traefik-hub.loadbalancer.server.port=8080"
+    volumes:
+      - ./traefik.yml:/traefik.yml
+    networks:
+      - traefik_network
+networks:
+  traefik_network:
+    name: traefik_net
+    external: true
